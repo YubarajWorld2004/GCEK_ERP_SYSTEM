@@ -38,25 +38,25 @@
                     <!-- Student Specific Fields -->
                     <div class="login-field hidden" id="student-fields">
                         <label for="registration-number" class="form-label">Registration Number</label>
-                        <input type="text" class="form-control" id="registration-number" placeholder="Enter registration number">
+                        <input type="text" class="form-control" id="registration-number" placeholder="Enter 10-digit registration number">
                     </div>
                     
                     <!-- Faculty Specific Fields -->
                     <div class="login-field hidden" id="faculty-fields">
                         <label for="faculty-id" class="form-label">Faculty ID</label>
-                        <input type="text" class="form-control" id="faculty-id" placeholder="Enter faculty ID">
+                        <input type="text" class="form-control" id="faculty-id" placeholder="3 letters + at least 4 digits (e.g., ABC1234)">
                     </div>
                     
                     <!-- HOD & Dean Specific Fields -->
                     <div class="login-field hidden" id="hod-dean-fields">
                         <label for="hod-dean-id" class="form-label">User ID</label>
-                        <input type="text" class="form-control" id="hod-dean-id" placeholder="Enter user ID">
+                        <input type="text" class="form-control" id="hod-dean-id" placeholder="3 letters + at least 4 digits (e.g., HOD1234)">
                     </div>
                     
                     <!-- Principal Specific Field -->
-                    <div class="login-field mb-3" id="principal-field">
+                    <div class="login-field hidden mb-3" id="principal-field">
                         <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" placeholder="Enter password">
+                        <input type="password" class="form-control" id="password" placeholder="Strong password (Aa1@... min 8 chars)">
                     </div>
                     
                     <div class="d-grid">
@@ -86,8 +86,8 @@
             function updateLoginFields() {
                 const userType = userTypeSelect.value;
                 
-                // Hide all fields first
-                [studentFields, facultyFields, hodDeanFields].forEach(field => {
+                // Hide all specific fields first
+                [studentFields, facultyFields, hodDeanFields, principalField].forEach(field => {
                     field.classList.add('hidden');
                 });
                 
@@ -95,22 +95,20 @@
                 switch(userType) {
                     case 'student':
                         studentFields.classList.remove('hidden');
-                        principalField.classList.add('hidden');
                         break;
                     case 'faculty':
                         facultyFields.classList.remove('hidden');
-                        principalField.classList.add('hidden');
                         break;
                     case 'hod':
                     case 'dean':
                         hodDeanFields.classList.remove('hidden');
-                        principalField.classList.add('hidden');
                         break;
                     case 'principal':
                         principalField.classList.remove('hidden');
                         break;
                     default:
-                        principalField.classList.remove('hidden');
+                        // nothing
+                        break;
                 }
             }
             
@@ -121,68 +119,134 @@
                 e.preventDefault();
                 
                 const userType = document.getElementById('user-type').value;
-                const username = document.getElementById('username').value;
+                const username = document.getElementById('username').value.trim();
+                
+                // Regex rules
+                const usernameCapRegex = /^[A-Z][A-Za-z0-9_]*$/; // first letter capital
+                const regNoRegex = /^\d{10}$/; // exactly 10 digits
+                const idRegex = /^[A-Za-z]{3}\d{4,}$/; // 3 letters + at least 4 digits
+                const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&()[\]{}^#\-+_=;:,.<>])[A-Za-z\d@$!%*?&()[\]{}^#\-+_=;:,.<>]{8,}$/;
                 
                 if (!userType) {
-                    alert('Please select user type');
+                    alert('Please select user type.');
                     return;
                 }
                 
                 if (!username) {
-                    alert('Please enter username');
+                    alert('Please enter username.');
                     return;
                 }
-                
-                // Validate specific fields based on user type
+
                 let isValid = true;
                 let redirectUrl = '';
                 
                 switch(userType) {
-                    case 'student':
-                        const regNumber = document.getElementById('registration-number').value;
+                    case 'student': {
+                        const regNumber = document.getElementById('registration-number').value.trim();
                         if (!regNumber) {
-                            alert('Please enter registration number');
+                            alert('Please enter registration number.');
                             isValid = false;
-                        } else {
-                            redirectUrl = 'student_dashboard.html';
+                            break;
                         }
+                        if (!regNoRegex.test(regNumber)) {
+                            alert('Invalid Registration Number.\nIt must be exactly 10 digits (no letters).');
+                            isValid = false;
+                            break;
+                        }
+                        // For student no special username rule given, so we accept any.
+                        redirectUrl = 'student_dashboard.html';
                         break;
-                    case 'faculty':
-                        const facultyId = document.getElementById('faculty-id').value;
+                    }
+                    case 'faculty': {
+                        if (!usernameCapRegex.test(username)) {
+                            alert('Invalid Username for Faculty.\nFirst letter must be capital (e.g., John123).');
+                            isValid = false;
+                            break;
+                        }
+                        const facultyId = document.getElementById('faculty-id').value.trim();
                         if (!facultyId) {
-                            alert('Please enter faculty ID');
+                            alert('Please enter Faculty ID.');
                             isValid = false;
-                        } else {
-                            redirectUrl = 'faculty_dashboard.html';
+                            break;
                         }
+                        if (!idRegex.test(facultyId)) {
+                            alert('Invalid Faculty ID.\nIt must contain 3 letters followed by at least 4 numbers (e.g., FAC1234).');
+                            isValid = false;
+                            break;
+                        }
+                        redirectUrl = 'faculty_dashboard.html';
                         break;
-                    case 'hod':
-                        const hodId = document.getElementById('hod-dean-id').value;
+                    }
+                    case 'hod': {
+                        if (!usernameCapRegex.test(username)) {
+                            alert('Invalid Username for HOD.\nFirst letter must be capital (e.g., Rohit01).');
+                            isValid = false;
+                            break;
+                        }
+                        const hodId = document.getElementById('hod-dean-id').value.trim();
                         if (!hodId) {
-                            alert('Please enter user ID');
+                            alert('Please enter User ID for HOD.');
                             isValid = false;
-                        } else {
-                            redirectUrl = 'hod_dashboard.html';
+                            break;
                         }
+                        if (!idRegex.test(hodId)) {
+                            alert('Invalid HOD User ID.\nIt must contain 3 letters followed by at least 4 numbers (e.g., HOD1234).');
+                            isValid = false;
+                            break;
+                        }
+                        redirectUrl = 'hod_dashboard.html';
                         break;
-                    case 'dean':
-                        const deanId = document.getElementById('hod-dean-id').value;
+                    }
+                    case 'dean': {
+                        if (!usernameCapRegex.test(username)) {
+                            alert('Invalid Username for Dean.\nFirst letter must be capital (e.g., Amit123).');
+                            isValid = false;
+                            break;
+                        }
+                        const deanId = document.getElementById('hod-dean-id').value.trim();
                         if (!deanId) {
-                            alert('Please enter user ID');
+                            alert('Please enter User ID for Dean.');
                             isValid = false;
-                        } else {
-                            redirectUrl = 'dean_dashboard.html';
+                            break;
                         }
+                        if (!idRegex.test(deanId)) {
+                            alert('Invalid Dean User ID.\nIt must contain 3 letters followed by at least 4 numbers (e.g., DEN1234).');
+                            isValid = false;
+                            break;
+                        }
+                        redirectUrl = 'dean_dashboard.html';
                         break;
-                    case 'principal':
+                    }
+                    case 'principal': {
+                        if (!usernameCapRegex.test(username)) {
+                            alert('Invalid Username for Principal.\nFirst letter must be capital (e.g., Principal01).');
+                            isValid = false;
+                            break;
+                        }
                         const password = document.getElementById('password').value;
                         if (!password) {
-                            alert('Please enter password');
+                            alert('Please enter password.');
                             isValid = false;
-                        } else {
-                            redirectUrl = 'principal_dashboard.html';
+                            break;
                         }
+                        if (!strongPasswordRegex.test(password)) {
+                            alert(
+                                'Weak Password.\n' +
+                                'Password must be at least 8 characters and include:\n' +
+                                '- At least 1 uppercase letter\n' +
+                                '- At least 1 lowercase letter\n' +
+                                '- At least 1 number\n' +
+                                '- At least 1 special character (e.g., @, #, $, %, &)'
+                            );
+                            isValid = false;
+                            break;
+                        }
+                        redirectUrl = 'principal_dashboard.html';
                         break;
+                    }
+                    default:
+                        alert('Invalid user type selected.');
+                        isValid = false;
                 }
                 
                 if (isValid && redirectUrl) {
