@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GCEK ERP System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="https://media.licdn.com/dms/image/v2/C560BAQEARb5Kgsh-Fg/company-logo_200_200/company-logo_200_200/0/1655539507119/government_college_of_engineering_kalahandi_logo?e=2147483647&v=beta&t=DklQzd5KnyUjk95_AaRh7aE3XNA_s0pCylGgnMA1Pio" alt="GCEK Logo" class="logo">
+                <h3>GCEK ERP Login</h3>
+            </div>
+            <div class="login-body">
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label for="user-type" class="form-label">User Type</label>
+                        <select class="form-select" id="user-type" required>
+                            <option value="">-- Select User Type --</option>
+                            <option value="student">Student</option>
+                            <option value="faculty">Faculty</option>
+                            <option value="hod">HOD</option>
+                            <option value="dean">Dean</option>
+                            <option value="principal">Principal</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Username Field - Always Visible -->
+                    <div class="login-field mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" placeholder="Enter username" required>
+                    </div>
+                    
+                    <!-- Student Specific Fields -->
+                    <div class="login-field hidden" id="student-fields">
+                        <label for="registration-number" class="form-label">Registration Number</label>
+                        <input type="text" class="form-control" id="registration-number" placeholder="Enter 10-digit registration number">
+                    </div>
+                    
+                    <!-- Faculty Specific Fields -->
+                    <div class="login-field hidden" id="faculty-fields">
+                        <label for="faculty-id" class="form-label">Faculty ID</label>
+                        <input type="text" class="form-control" id="faculty-id" placeholder="3 letters + at least 4 digits (e.g., ABC1234)">
+                    </div>
+                    
+                    <!-- HOD & Dean Specific Fields -->
+                    <div class="login-field hidden" id="hod-dean-fields">
+                        <label for="hod-dean-id" class="form-label">User ID</label>
+                        <input type="text" class="form-control" id="hod-dean-id" placeholder="3 letters + at least 4 digits (e.g., HOD1234)">
+                    </div>
+                    
+                    <!-- Principal Specific Field -->
+                    <div class="login-field hidden mb-3" id="principal-field">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="Strong password (Aa1@... min 8 chars)">
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                    </div>
+                </form>
+                <div class="text-center mt-4">
+                    <a href="index.html" class="text-decoration-none">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userTypeSelect = document.getElementById('user-type');
+            const studentFields = document.getElementById('student-fields');
+            const facultyFields = document.getElementById('faculty-fields');
+            const hodDeanFields = document.getElementById('hod-dean-fields');
+            const principalField = document.getElementById('principal-field');
+            
+            function updateLoginFields() {
+                const userType = userTypeSelect.value;
+                
+                // Hide all specific fields first
+                [studentFields, facultyFields, hodDeanFields, principalField].forEach(field => {
+                    field.classList.add('hidden');
+                });
+                
+                // Show relevant fields based on user type
+                switch(userType) {
+                    case 'student':
+                        studentFields.classList.remove('hidden');
+                        break;
+                    case 'faculty':
+                        facultyFields.classList.remove('hidden');
+                        break;
+                    case 'hod':
+                    case 'dean':
+                        hodDeanFields.classList.remove('hidden');
+                        break;
+                    case 'principal':
+                        principalField.classList.remove('hidden');
+                        break;
+                    default:
+                        // nothing
+                        break;
+                }
+            }
+            
+            userTypeSelect.addEventListener('change', updateLoginFields);
+            
+            // Form submission
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const userType = document.getElementById('user-type').value;
+                const username = document.getElementById('username').value.trim();
+                
+                // Regex rules
+                const usernameCapRegex = /^[A-Z][A-Za-z0-9_]*$/; // first letter capital
+                const regNoRegex = /^\d{10}$/; // exactly 10 digits
+                const idRegex = /^[A-Za-z]{3}\d{4,}$/; // 3 letters + at least 4 digits
+                const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&()[\]{}^#\-+_=;:,.<>])[A-Za-z\d@$!%*?&()[\]{}^#\-+_=;:,.<>]{8,}$/;
+                
+                if (!userType) {
+                    alert('Please select user type.');
+                    return;
+                }
+                
+                if (!username) {
+                    alert('Please enter username.');
+                    return;
+                }
+
+                let isValid = true;
+                let redirectUrl = '';
+                
+                switch(userType) {
+                    case 'student': {
+                        const regNumber = document.getElementById('registration-number').value.trim();
+                        if (!regNumber) {
+                            alert('Please enter registration number.');
+                            isValid = false;
+                            break;
+                        }
+                        if (!regNoRegex.test(regNumber)) {
+                            alert('Invalid Registration Number.\nIt must be exactly 10 digits (no letters).');
+                            isValid = false;
+                            break;
+                        }
+                        // For student no special username rule given, so we accept any.
+                        redirectUrl = 'student_dashboard.html';
+                        break;
+                    }
+                    case 'faculty': {
+                        if (!usernameCapRegex.test(username)) {
+                            alert('Invalid Username for Faculty.\nFirst letter must be capital (e.g., John123).');
+                            isValid = false;
+                            break;
+                        }
+                        const facultyId = document.getElementById('faculty-id').value.trim();
+                        if (!facultyId) {
+                            alert('Please enter Faculty ID.');
+                            isValid = false;
+                            break;
+                        }
+                        if (!idRegex.test(facultyId)) {
+                            alert('Invalid Faculty ID.\nIt must contain 3 letters followed by at least 4 numbers (e.g., FAC1234).');
+                            isValid = false;
+                            break;
+                        }
+                        redirectUrl = 'faculty_dashboard.html';
+                        break;
+                    }
+                    case 'hod': {
+                        if (!usernameCapRegex.test(username)) {
+                            alert('Invalid Username for HOD.\nFirst letter must be capital (e.g., Rohit01).');
+                            isValid = false;
+                            break;
+                        }
+                        const hodId = document.getElementById('hod-dean-id').value.trim();
+                        if (!hodId) {
+                            alert('Please enter User ID for HOD.');
+                            isValid = false;
+                            break;
+                        }
+                        if (!idRegex.test(hodId)) {
+                            alert('Invalid HOD User ID.\nIt must contain 3 letters followed by at least 4 numbers (e.g., HOD1234).');
+                            isValid = false;
+                            break;
+                        }
+                        redirectUrl = 'hod_dashboard.html';
+                        break;
+                    }
+                    case 'dean': {
+                        if (!usernameCapRegex.test(username)) {
+                            alert('Invalid Username for Dean.\nFirst letter must be capital (e.g., Amit123).');
+                            isValid = false;
+                            break;
+                        }
+                        const deanId = document.getElementById('hod-dean-id').value.trim();
+                        if (!deanId) {
+                            alert('Please enter User ID for Dean.');
+                            isValid = false;
+                            break;
+                        }
+                        if (!idRegex.test(deanId)) {
+                            alert('Invalid Dean User ID.\nIt must contain 3 letters followed by at least 4 numbers (e.g., DEN1234).');
+                            isValid = false;
+                            break;
+                        }
+                        redirectUrl = 'dean_dashboard.html';
+                        break;
+                    }
+                    case 'principal': {
+                        if (!usernameCapRegex.test(username)) {
+                            alert('Invalid Username for Principal.\nFirst letter must be capital (e.g., Principal01).');
+                            isValid = false;
+                            break;
+                        }
+                        const password = document.getElementById('password').value;
+                        if (!password) {
+                            alert('Please enter password.');
+                            isValid = false;
+                            break;
+                        }
+                        if (!strongPasswordRegex.test(password)) {
+                            alert(
+                                'Weak Password.\n' +
+                                'Password must be at least 8 characters and include:\n' +
+                                '- At least 1 uppercase letter\n' +
+                                '- At least 1 lowercase letter\n' +
+                                '- At least 1 number\n' +
+                                '- At least 1 special character (e.g., @, #, $, %, &)'
+                            );
+                            isValid = false;
+                            break;
+                        }
+                        redirectUrl = 'principal_dashboard.html';
+                        break;
+                    }
+                    default:
+                        alert('Invalid user type selected.');
+                        isValid = false;
+                }
+                
+                if (isValid && redirectUrl) {
+                    // Show loading state
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging in...';
+                    submitBtn.disabled = true;
+                    
+                    // Simulate API call
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1500);
+                }
+            });
+            
+            // Initialize fields
+            updateLoginFields();
+        });
+    </script>
+</body>
+</html>
